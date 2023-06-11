@@ -1,6 +1,9 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { NextPageButton, PreviousPageButton } from "@djs-button-pages/presets";
+import { ButtonStyle } from "discord.js";
+import { PaginationWrapper } from "djs-button-pages";
 import { Bookmark } from "../models/Bookmark.js";
-import { EmbedBuilder } from "discord.js";
+import { getEmbeds } from "../utils/common.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -30,18 +33,26 @@ export default {
     const user = interaction.options.get("user");
     const query = interaction.options.get("query");
     const category = interaction.options.get("category");
-
+    const buttons = [
+      new PreviousPageButton({
+        custom_id: "prev_page",
+        emoji: "◀",
+        style: ButtonStyle.Secondary,
+      }),
+      new NextPageButton({
+        custom_id: "next_page",
+        emoji: "▶",
+        style: ButtonStyle.Secondary,
+      }),
+    ];
     if (category) {
       const categoryList = await Bookmark.find({ category: category.value });
-      const fields = categoryList.map((item) => {
+
+      const categoryFields = categoryList.map((item) => {
         return { name: `${item.desc}`, value: `${item.url}` };
       });
 
-      const categoryListEmbed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle("Search")
-        .addFields(fields)
-        .setTimestamp();
+      const embeds = getEmbeds(categoryFields);
 
       if (categoryList.length === 0) {
         await interaction.reply({
@@ -50,33 +61,38 @@ export default {
         });
       }
 
-      await interaction.reply({
-        embeds: [categoryListEmbed],
-        ephemeral: false,
-      });
+      const pagination = new PaginationWrapper()
+        .setButtons(buttons)
+        .setEmbeds(embeds)
+        .setTime(60000);
+
+      await pagination.interactionReply(interaction);
     }
     if (user) {
       const userList = await Bookmark.find({ author_id: user.value });
+
       const userFields = userList.map((item) => {
-        return { name: `${item.desc}`, value: `${item.url}` };
+        return {
+          name: `${item.desc}`,
+          value: `category: *${item.category}* \n ${item.url}`,
+        };
       });
-      const userBookmarkListEmbed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle("User search results")
-        .addFields({ name: "user", value: `<@${user.value}>` })
-        .addFields(userFields)
-        .setTimestamp();
+
+      const embeds = getEmbeds(userFields);
 
       if (userList.length === 0) {
-        await interaction.reply({
+        return await interaction.reply({
           content: "Not found",
           ephemeral: true,
         });
       }
-      await interaction.reply({
-        embeds: [userBookmarkListEmbed],
-        ephemeral: false,
-      });
+
+      const pagination = new PaginationWrapper()
+        .setButtons(buttons)
+        .setEmbeds(embeds)
+        .setTime(60000);
+
+      await pagination.interactionReply(interaction);
     }
     if (query) {
       const queryList = await Bookmark.aggregate().search({
@@ -85,24 +101,25 @@ export default {
           path: "desc",
         },
       });
-      console.log(queryList);
 
       const queryFields = queryList.map((item) => {
         return { name: `${item.desc}`, value: `${item.url}` };
       });
-      const queryBookmarkListEmbed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle("Query search results")
-        .addFields(
-          queryList.length <= 0
-            ? { name: `${query.value}`, value: "Not found" }
-            : queryFields
-        )
-        .setTimestamp();
-      await interaction.reply({
-        embeds: [queryBookmarkListEmbed],
-        ephemeral: false,
-      });
+      if (queryList.length === 0) {
+        return await interaction.reply({
+          content: "Not found",
+          ephemeral: true,
+        });
+      }
+
+      const embeds = getEmbeds(queryFields);
+
+      const pagination = new PaginationWrapper()
+        .setButtons(buttons)
+        .setEmbeds(embeds)
+        .setTime(60000);
+
+      await pagination.interactionReply(interaction);
     }
   },
 };
