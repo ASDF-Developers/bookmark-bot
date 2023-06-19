@@ -13,14 +13,18 @@ export default {
       option
         .setName("category")
         .setDescription("search category")
-        .addChoices({ name: "Flutter", value: "flutter" })
-        .addChoices({ name: "Javascript", value: "javascript" })
-        .addChoices({ name: "Useful", value: "useful" })
-        .addChoices({ name: "Tool", value: "tool" })
-        .addChoices({ name: "Article", value: "article" })
-        .addChoices({ name: "Newbie Useful", value: "newbiebuseful" })
-        .addChoices({ name: "Video", value: "video" })
-        .addChoices({ name: "Python", value: "python" })
+        .addChoices(
+          { name: "Flutter", value: "flutter" },
+          { name: "Javascript", value: "javascript" },
+          { name: "Useful", value: "useful" },
+          { name: "Tool", value: "tool" },
+          { name: "Article", value: "article" },
+          { name: "Newbie Useful", value: "newbiebuseful" },
+          { name: "Video", value: "video" },
+          { name: "Python", value: "python" },
+          { name: "AI", value: "ai" }
+        )
+
         .setRequired(false)
     )
     .addUserOption((option) =>

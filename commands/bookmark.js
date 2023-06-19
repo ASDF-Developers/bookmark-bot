@@ -26,7 +26,8 @@ export default {
           { name: "Article", value: "article" },
           { name: "Newbie Useful", value: "newbiebuseful" },
           { name: "Video", value: "video" },
-          { name: "Python", value: "python" }
+          { name: "Python", value: "python" },
+          { name: "AI", value: "ai" }
         )
 
         .setRequired(true)
